@@ -1,28 +1,25 @@
 /**gulp includes**********************************************/
 const gulp = require("gulp"),
   uglify = require("gulp-uglify"),
-  concat = require("gulp-concat");
-// strip = require("gulp-strip-comments"),
-//  zip = require("gulp-zip"),
-// rename = require("gulp-rename"),
-//  debug = require("gulp-debug"),
-// order = require("gulp-order"),
-// cleanCSS = require("gulp-clean-css"),
-// footer = require("gulp-footer"),
-// removeEmptyLines = require("gulp-remove-empty-lines"),
-//replace = require("gulp-replace");
+  concat = require("gulp-concat"),
+  zip = require("gulp-zip"),
+  // strip = require("gulp-strip-comments"),
+  // rename = require("gulp-rename"),
+  //  debug = require("gulp-debug"),
+  // order = require("gulp-order"),
+  // cleanCSS = require("gulp-clean-css"),
+  // footer = require("gulp-footer"),
+  // removeEmptyLines = require("gulp-remove-empty-lines"),
+  replace = require("gulp-replace");
 const { dest } = require("vinyl-fs");
 
 /**paths******************************************************/
 
-const headerPath = "../static/js/header.js";
+const headerPath = "../js/header.js";
 
 const minFileName = "palaceController.min.";
 
-const userVars = "../static/js/userVars.js";
-
-
-
+const userVars = "../js/userVars.js";
 
 //"./static/js/jsPlus/*/*.js",
 //"./static/js/jsPlus/**/*.js"
@@ -31,20 +28,20 @@ const userVars = "../static/js/userVars.js";
 // "../static/js/shillaIdle/*/**/*.js",
 
 const src = [
-  "../static/js/PalaceController.js",
+  "../js/PalaceController.js",
 ];
 
 /**tasks******************************************************/
 
 function minifyJSAll() {
   return minifyJS(
-    idleSrc,
+    src,
     minFileName + "js"
   );
 }
 
 function concatJSAll() {
-  concatFiles(
+  return concatFiles(
     [headerPath, userVars, "target/min/" + minFileName + "js"],
     "palaceController.min.user.js"
   );
@@ -52,8 +49,8 @@ function concatJSAll() {
 
 function zipAll() {
   return gulp
-    .src(["target/min/*.user.js", "../README.MD"])
-    .pipe(zip("palaceController.zip"))
+    .src(["target/min/*.user.js", "../../../../../README.MD"])
+    //.pipe(zip("palaceController.zip"))
     .pipe(dest("target"));
 }
 
@@ -106,7 +103,6 @@ function concatFiles(src, concatPath) {
       .src(src)
       // .pipe(debug())
       .pipe(concat({ path: concatPath }))
-      .pipe(footer("\n"))
       .pipe(dest("target/min"))
   );
 }

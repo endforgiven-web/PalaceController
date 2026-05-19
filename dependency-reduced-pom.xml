@@ -10,7 +10,7 @@
   <groupId>com.Bar.Mar</groupId>
   <artifactId>PalaceController</artifactId>
   <name>palaceController</name>
-  <version>0.2.0.0</version>
+  <version>0.2.0.1</version>
   <description>A controller for local LLMs</description>
   <inceptionYear>2026</inceptionYear>
   <build>

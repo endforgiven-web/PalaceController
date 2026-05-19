@@ -6,7 +6,7 @@
 
     <groupId>com.Bar.Mar</groupId>
     <artifactId>PalaceController</artifactId>
-    <version>0.2.0.0</version>
+    <version>0.2.0.1</version>
     <name>palaceController</name>
     <inceptionYear>2026</inceptionYear>
     <description>A controller for local LLMs</description>

@@ -1,5 +1,7 @@
 package com.Bar.Mar.spring;
 
+import com.Bar.Mar.Main;
+
 import java.io.*;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -22,9 +24,7 @@ public class PalaceScheduler {
 
     public PalaceScheduler() {
         loadCompletionLog();
-        schedule.put(ServerStatus.SCRAPE, List.of(
-                LocalTime.of(6, 0), LocalTime.of(18, 0)
-        ));
+        schedule.put(ServerStatus.SCRAPE, Main.config.scrapeTimes());
     }
 
     public List<String> getDueTasks() {
