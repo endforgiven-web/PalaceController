@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="28.0" minWidth="100.0" spacing="4.0" styleClass="title-bar" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Bar.Mar.GUI.TitleBarController">
+    <children>
+        <ImageView fx:id="icon" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
+        </ImageView>
+        <HBox alignment="CENTER" spacing="6.0">
+            <children>
+                <Label fx:id="nameLabel" text="name" />
+                <Button mnemonicParsing="false" styleClass="tooltip-par">
+                    <tooltip>
+                        <Tooltip fx:id="versionLabel" showDelay="0.0s" text="version" />
+                    </tooltip>
+                    <graphic>
+                        <FontIcon iconLiteral="codicon-question" />
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+        <HBox alignment="CENTER_RIGHT" spacing="2.0" HBox.hgrow="ALWAYS">
+            <children>
+                <Button fx:id="minButton" mnemonicParsing="false" prefWidth="22.0" styleClass="inverted">
+                    <graphic>
+                        <FontIcon iconLiteral="codicon-chrome-minimize" />
+                    </graphic>
+                </Button>
+                <Button mnemonicParsing="false" styleClass="inverted" fx:id="xButton">
+                    <graphic>
+                        <FontIcon iconLiteral="codicon-close" />
+                    </graphic>
+                </Button>
+            </children>
+            <padding>
+                <Insets bottom="1.0" top="1.0" />
+            </padding>
+        </HBox>
+    </children>
+    <padding>
+        <Insets left="4.0" right="4.0" />
+    </padding>
+</HBox>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="root" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Bar.Mar.GUI.AppController">
+    <children>
+        <fx:include fx:id="titleBar" source="titleBarController.fxml" />
+        <fx:include minHeight="300.0" minWidth="400.0" source="FilesConfig.fxml" />
+    </children>
+</VBox>
