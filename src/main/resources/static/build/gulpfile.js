@@ -3,13 +3,6 @@ const gulp = require("gulp"),
   uglify = require("gulp-uglify"),
   concat = require("gulp-concat"),
   zip = require("gulp-zip"),
-  // strip = require("gulp-strip-comments"),
-  // rename = require("gulp-rename"),
-  //  debug = require("gulp-debug"),
-  // order = require("gulp-order"),
-  // cleanCSS = require("gulp-clean-css"),
-  // footer = require("gulp-footer"),
-  // removeEmptyLines = require("gulp-remove-empty-lines"),
   replace = require("gulp-replace");
 const { dest } = require("vinyl-fs");
 
@@ -20,12 +13,6 @@ const headerPath = "../js/header.js";
 const minFileName = "palaceController.min.";
 
 const userVars = "../js/userVars.js";
-
-//"./static/js/jsPlus/*/*.js",
-//"./static/js/jsPlus/**/*.js"
-//"../static/js/shillaPlus/**/*.js",
-//"../static/js/shillaIdle/*/generic/*.js",
-// "../static/js/shillaIdle/*/**/*.js",
 
 const src = [
   "../js/PalaceController.js",
@@ -47,19 +34,11 @@ function concatJSAll() {
   );
 }
 
-function zipAll() {
-  return gulp
-    .src(["target/min/*.user.js", "../../../../../README.MD"])
-    //.pipe(zip("palaceController.zip"))
-    .pipe(dest("target"));
-}
-
 /**build****************************************************/
 
 async function build() {
   minifyJSAll().on("end", function () {
     concatJSAll().on("end", function () {
-      zipAll();
     });
   });
 }

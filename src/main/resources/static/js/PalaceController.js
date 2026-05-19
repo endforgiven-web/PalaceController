@@ -1,7 +1,4 @@
 
-
-
-
 (function () {
     window.addEventListener('load', function () {
         setUpTestButton();
@@ -10,7 +7,7 @@
 })();
 
 function startCheckingCycle() {
-
+    console.log('test');
     if (!hasCycleRun) {
         hasCycleRun = true;
         const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
