@@ -15,7 +15,7 @@ const minFileName = "palaceController.min.";
 const userVars = "../js/userVars.js";
 
 const src = [
-  "../js/PalaceController.js",
+  "../js/main/*.js",
 ];
 
 /**tasks******************************************************/
