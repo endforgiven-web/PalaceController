@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<HBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="28.0" minWidth="100.0" spacing="4.0" styleClass="title-bar" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Bar.Mar.GUI.TitleBarController">
+<HBox fx:id="root" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="28.0" minWidth="100.0" spacing="4.0" styleClass="title-bar" xmlns="http://javafx.com/javafx/17.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.Bar.Mar.GUI.TitleBarController">
     <children>
         <ImageView fx:id="icon" fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
         </ImageView>

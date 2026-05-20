@@ -29,7 +29,7 @@ function startCheckingCycle() {
 function setUpTestButton() {
     const btn = document.createElement("button");
     btn.innerText = "test";
-    btn.addEventListener("click", scrollToTopAutoScrape);
+    btn.addEventListener("click", scrapeAndUploadNewConversations);
     document.body.appendChild(btn);
 }
 

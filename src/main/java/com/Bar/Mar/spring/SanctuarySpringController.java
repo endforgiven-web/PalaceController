@@ -5,20 +5,18 @@ import com.Bar.Mar.GUI.SanctuaryGUIController;
 import com.Bar.Mar.Main;
 import jPlus.io.file.FileUtils;
 import jPlusLibs.spring.HTTPUtils;
-import javafx.application.Platform;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.AsyncResult;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.time.LocalTime;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +44,9 @@ public class SanctuarySpringController {
         return new AsyncResult<>(HTTPUtils.jsonCreate(json));
     }
 
-    /** MASTER **/
+    /**
+     * MASTER
+     **/
     @RequestMapping(value = "/master",
             method = RequestMethod.POST,
             headers = "Accept=application/json")
@@ -62,14 +62,16 @@ public class SanctuarySpringController {
         return new AsyncResult<>(HTTPUtils.jsonCreate(json));
     }
 
-    public static String[] getMasterList(){
+    public static String[] getMasterList() {
         final String sep = File.separator;
         final String masterListPath = Main.config.cloudConvPath + sep + "master_list.txt";
 
         return FileUtils.read(masterListPath).toArray(String[]::new);
     }
 
-    /** UPLOAD **/
+    /**
+     * UPLOAD
+     **/
     @RequestMapping(value = "/uploadCloudConv",
             method = RequestMethod.POST,
             headers = "Accept=application/json")

@@ -13,7 +13,7 @@ public class PalaceConfig {
     public String cloudGitPath = SystemUtils.getDownloadFolderPath();
     public String cloudConvPath = SystemUtils.getDownloadFolderPath();
 
-    public List<String> scrapeTimes  = List.of("6:00", "18:00");
+    public List<String> scrapeTimes  = List.of("06:00", "18:00");
 
     public List<LocalTime> scrapeTimes(){
         return scrapeTimes
