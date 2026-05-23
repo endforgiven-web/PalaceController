@@ -89,13 +89,15 @@ async function scrapeAndUploadNewConversations() {
             ConvTitles.GOTO_X_CONV(scrapeStartPoint - 1);
 
             const files = [];
-
+            let currIndex = scrapeStartPoint - 1;
             Scraper.END_CALLBACK = () => {
                 setTimeout(() => {
-                    const didMove = ConvTitles.GOTO_PREV_CONV();
-                    if (didMove) { setTimeout(() => { scrollToTopAutoScrape(); }, 1500); }
-                    else {
+                    if (currIndex <= 0) {
                         uploadConvs(files);
+                    } else {
+                        currIndex--;
+                        ConvTitles.GOTO_X_CONV(currIndex);
+                        setTimeout(() => { scrollToTopAutoScrape(); }, 1500);
                     }
                 }, 1000);
 

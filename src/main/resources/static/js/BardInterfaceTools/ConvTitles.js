@@ -5,10 +5,10 @@ class ConvTitles {
         const array = ConvTitles.GET_TITLES();
         const titles = {};
         array.forEach((item, index) => {
-            titles[item.textContent.trim()] = index;
+            let indexList = titles[item];
+            if (indexList == undefined) indexList = [];
+            titles[item.textContent.trim()] = indexList.push(index);
         });
-
-        console.log(titles);
 
         return titles;
     }
@@ -21,31 +21,32 @@ class ConvTitles {
         return document.querySelector("gem-nav-list-item[data-test-id='conversation'] > a.mdc-list-item--activated .title-text");
     }
 
-    static GET_INDEX(title) {
-        return ConvTitles.GET_TITLES_TEXT()[title];
+    static GET_INDEX(title, prevCurrIndex = 0) {
+        titleIndexList = ConvTitles.GET_TITLES_TEXT()[title];
+        return MathUtils.closest(titleIndexList, prevCurrIndex);
     }
 
-    static GET_CURR_INDEX() {
+    static GET_CURR_INDEX(prevCurrIndex) {
         const currTitle = ConvTitles.GET_CURR_TITLE_TEXT();
         console.log(currTitle);
-        const currIndex = ConvTitles.GET_INDEX(currTitle);
+        const currIndex = ConvTitles.GET_INDEX(currTitle, prevCurrIndex);
 
         return currIndex;
     }
 
     static GET_TITLES() {
-        return document.querySelectorAll('.conversation-title');
+        return document.querySelectorAll("gem-nav-list-item[data-test-id='conversation'] span.title-text");
     }
 
-    static GOTO_PREV_CONV() {
-        const currIndex = ConvTitles.GET_CURR_INDEX();
-        console.log("goto prev conv: " + currIndex);
-        const prevIndex = currIndex - 1;
-        if (prevIndex >= 0) {
-            ConvTitles.GOTO_X_CONV(prevIndex);
-            return true;
+    static GOTO_PREV_CONV(prevCurrIndex) {
+        const currIndex = ConvTitles.GET_CURR_INDEX(prevCurrIndex);
+        if (currIndex >= 0) {
+            const nextIndex = currIndex - 1;
+            console.log("goto prev conv: " + nextIndex);
+            ConvTitles.GOTO_X_CONV(nextIndex);
+            return nextIndex;
         }
-        return false;
+        return currIndex;
     }
 
     static GOTO_X_CONV(index) {
@@ -70,12 +71,12 @@ class ConvTitles {
     static GET_RECENT(onFinish = (titles) => { }) {
         //const checkXConversations = 40;
         const desiredCheck = 40;
-        const convCont = ConvTitles.GET_CONV_CONT();
-        const infScroller = ConvTitles.GET_LEFT_INF_SCROLL();
+        let infScroller = ConvTitles.GET_LEFT_INF_SCROLL();
         let convTitles;
         const interval = setInterval(() => {
-            convTitles = document.querySelectorAll('.conversation-title');
+            convTitles = ConvTitles.GET_TITLES();
             if (convTitles.length <= desiredCheck) {
+                if (infScroller == undefined) infScroller = ConvTitles.GET_LEFT_INF_SCROLL();
                 ScrollUtils.BOTTOM(infScroller);
             } else {
                 clearInterval(interval);

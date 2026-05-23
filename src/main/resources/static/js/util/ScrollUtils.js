@@ -1,4 +1,4 @@
-class ScrollUtils{
+class ScrollUtils {
     static TOP(el) {
         el.scrollTo(0.0, 0.0);
     }

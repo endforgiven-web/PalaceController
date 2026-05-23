@@ -7,30 +7,47 @@ const gulp = require("gulp"),
 const { dest } = require("vinyl-fs");
 
 /**paths******************************************************/
-
-const headerPath = "../js/header.js";
-
-const minFileName = "palaceController.min.";
-
 const userVars = "../js/userVars.js";
 
-const src = [
-  "../js/main/*.js",
+const bIheaderPath = "../js/BardInterfaceTools/header.js";
+const minBIFileName = "bardInterfaceTools";
+const bIToolsSRC = [
+  "../js/BardInterfaceTools/*.js",
+  "../js/util/*.js",
+];
+
+const gCheaderPath = "../js/GoogleChatTools/header.js";
+const minGCFileName = "googleChatTools";
+const gCToolsSRC = [
+  "../js/GoogleChatTools/*.js",
+  "../js/util/*.js",
 ];
 
 /**tasks******************************************************/
 
 function minifyJSAll() {
+
+  minifyJS(
+    gCToolsSRC,
+    minGCFileName + ".min.js"
+  );
+
   return minifyJS(
-    src,
-    minFileName + "js"
+    bIToolsSRC,
+    minBIFileName + ".min.js"
   );
 }
 
 function concatJSAll() {
+
+  concatFiles(
+    [gCheaderPath, userVars, "target/min/" + minGCFileName + "js"],
+    minGCFileName + ".user.js"
+  );
+
   return concatFiles(
-    [headerPath, userVars, "target/min/" + minFileName + "js"],
-    "palaceController.min.user.js"
+    [bIheaderPath, userVars, "target/min/" + minBIFileName + "js"],
+    minBIFileName + ".user.js"
   );
 }
 
@@ -47,10 +64,17 @@ exports.build = build;
 
 /**watch****************************************************/
 async function watchDev() {
+
+  watchJS(
+    minGCFileName + ".all.min.dev.js",
+    [gCheaderPath, userVars],
+    gCToolsSRC,
+  );
+
   return watchJS(
-    "palaceController.all.min.dev.js",
-    [headerPath, userVars],
-    src,
+    minBIFileName + ".all.min.dev.js",
+    [bIheaderPath, userVars],
+    bIToolsSRC,
   );
 }
 
