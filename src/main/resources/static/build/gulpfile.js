@@ -1,6 +1,7 @@
 /**gulp includes**********************************************/
 const gulp = require("gulp"),
   uglify = require("gulp-uglify"),
+  ts = require('gulp-typescript'),
   concat = require("gulp-concat"),
   zip = require("gulp-zip"),
   replace = require("gulp-replace");
