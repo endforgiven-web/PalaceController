@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",                               /* Target modern JS features for Tampermonkey */
+    "module": "None",                                 /* Gulp handles bundling via concat, so we don't use module loaders */
+    
+    /* JavaScript Support (Crucial for your transition!) */
+    "allowJs": true,                                  /* Allows vanilla JS files to pass through the stream */
+    "checkJs": false,                                 /* Keeps TS from throwing errors inside your legacy JS files */
+
+    /* Interop Constraints */
+    "esModuleInterop": true,                          /* Emits additional JavaScript to ease importing CommonJS modules */
+    "forceConsistentCasingInFileNames": true,        /* Ensures cross-platform file name sensitivity works */
+
+    /* Type Checking */
+    "strict": true,                                   /* Enable all strict type-checking options */
+    "noImplicitAny": true,                            /* Raise error on expressions and declarations with an implied 'any' type */
+    "strictNullChecks": true,                         /* Ensures you handle null/undefined explicitly */
+    "skipLibCheck": true                              /* Skip type checking of declaration files (.d.ts) to speed up builds */
+  },
+}
