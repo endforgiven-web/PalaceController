@@ -1,6 +1,10 @@
 class GCUtils {
-    static SCRAPE(x) {
+    static SCRAPE_X(x) {
         GCUtils.goToXChat(x);
+        GCUtils.SCRAPE_CURR_CONV();
+    }
+
+    static SCRAPE_CURR_CONV() {
         setTimeout(() => {
             const convName = GCUtils.GET_CURR_CONV_NAME();
             const convMessages = GCUtils.GET_CURR_CONV_MESSAGES_TEXT();

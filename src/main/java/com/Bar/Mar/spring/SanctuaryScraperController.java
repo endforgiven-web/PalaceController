@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 
 @Controller
 @CrossOrigin
-public class SanctuarySpringController {
+public class SanctuaryScraperController {
 
     final PalaceScheduler scheduler = new PalaceScheduler();
 
