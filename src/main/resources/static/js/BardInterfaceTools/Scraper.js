@@ -1,52 +1,136 @@
-class Scraper{
-    static SCRAPE() {
-        const chatInfScroll = ChatScroller.GET();
-        const convTitle = ConvTitles.GET_CURR_TITLE();
-        if (chatInfScroll !== undefined && convTitle !== undefined) {
-            const data = chatInfScroll.textContent;
-            const fileName = ConvTitles.REMOVE_SPECIAL_CHARS(convTitle.textContent) + " " + getDateCST();
-            const type = "txt"
-            const dataModified = data.replaceAll(/ You Said  /gi, "\n\n").replaceAll(/ Gemini Said /gi, "\n\n").replaceAll(/You Stopped this Response/gi, "");
-            Scraper.DATA_CALLBACK(fileName, dataModified, type);
-        } else {
-            console.log(chatInfScroll, convTitle);
-        }
-        Scraper.END_CALLBACK();
+function startCheckingCycle() {
+    if (!hasCycleRun) {
+        hasCycleRun = true;
+        const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
+        const CHECK_FREQUENCY = 10 * 1000; // 10 seconds
+
+        console.log("Bard-O-Matic active. Initialized at: " + new Date(pageStartTime).toLocaleTimeString());
+
+        setInterval(() => {
+            const currentTime = Date.now();
+
+            if ((currentTime - pageStartTime) > REFRESH_INTERVAL) {
+                console.log("The hour has passed. Seeking fresh signals...");
+                location.reload();
+            } else {
+                Server.CHECK_STATUS(Server.ACT_ON_STATUS);
+            }
+        }, CHECK_FREQUENCY);
+    }
+}
+
+function getDateCST() {
+    const options = { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    return new Date().toLocaleString('en-US', options).replaceAll("/", "_").replaceAll(":", "_");
+}
+
+// upload
+function uploadConvs(files, onFinish = (response) => { }) {
+    console.log(files);
+
+    if (!files.length) {
+        console.error("Please select at least one file.");
+        return;
     }
 
-    static GET_MASTER_LIST(onFinish = (data) => { }) {
-        GM_xmlhttpRequest({
-            method: "POST",
-            url: baseUrl + "master",
-            onload: function (response) {
-                var data = JSON.parse(response.responseText);
-                onFinish(data.resp);
-            },
-            onerror: function (err) {
-                console.error("Palace Uplink Failed!", err);
+    const formData = new FormData();
+
+    // Append each file under the same key name "files"
+    for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i], files[i].name);
+    }
+
+    GM_xmlhttpRequest({
+        method: "POST",
+        url: baseUrl + "uploadCloudConv",
+        data: formData,
+        onload: function (response) {
+
+        },
+        onerror: function (err) {
+            console.error("Palace Uplink Failed!", err);
+        }
+    });
+}
+
+
+/** Scrape **/
+async function scrapeAndUploadNewConversations() {
+    ScrapeUtils.GET_MASTER_LIST((masterList) => {
+        ConvTitles.GET_RECENT((titles) => {
+
+            let startMLSlice = masterList.length - titles.length;
+            startMLSlice = startMLSlice <= 0 ? 0 : startMLSlice;
+            const masterListPortion = masterList.slice(startMLSlice, masterList.length);
+
+            const cleanedMasterList = masterListPortion.map(title => {
+                return title
+                    .replace(/^_+/, '')
+                    .replace(/\s+\d{2}.*$/, '')
+                    .replace(/\.txt$/, '')
+                    .trim();
+            }).reverse();
+
+            const scrapeStartPoint = ScrapeUtils.FIND_START(cleanedMasterList, titles);
+
+            ConvTitles.GOTO_X_CONV(scrapeStartPoint - 1);
+
+            const files = [];
+            let currIndex = scrapeStartPoint - 1;
+            ScrapeUtils.END_CALLBACK = () => {
+                setTimeout(() => {
+                    if (currIndex <= 0) {
+                        uploadConvs(files);
+                    } else {
+                        currIndex--;
+                        ConvTitles.GOTO_X_CONV(currIndex);
+                        setTimeout(() => { scrollToTopAutoScrape(); }, 1500);
+                    }
+                }, 1000);
+
             }
+
+            ScrapeUtils.DATA_CALLBACK = (name, data, type) => {
+                const blob = new Blob([data], { type: "text/plain" });
+
+                // 3️⃣ Convert Blob to a File object (gives it a name & metadata)
+                const file = new File([blob], name + "." + type, {
+                    type: "text/plain",
+                    lastModified: Date.now()
+                });
+                files.push(file);
+            }
+
+            scrollToTopAutoScrape();
         });
-    }
+    });
+}
 
-    static FIND_START(masterList, recentList) {
-        // We iterate backwards through the recent list (newest first)
-        // to find the first title that ALREADY exists in the master list.
-        for (let i = 0; i < recentList.length; i++) {
-            if (masterList.includes(recentList[i])) {
-                // Found a match! We should start scraping from the entry
-                // immediately AFTER this one (the first truly "new" one).
-                // If i is 0, it means the very first one we checked is old.
-                return i;
+function scrollToTopAutoScrape() { scrollToTopAuto(ScrapeUtils.SCRAPE); }
+
+function scrollToTopAuto(callback = () => { }) {
+    const chatScroller = ChatScroller.GET();
+    ScrollUtils.TOP(chatScroller);
+    const hasHitTopExtra = 56;
+    let hasHitTop = 0;
+
+    const intervalMs = 125;
+
+    let prevScrollHeight = chatScroller.scrollHeight;
+    const interval = setInterval(() => {
+        if (chatScroller.scrollTop <= 0.0 && chatScroller.scrollHeight == prevScrollHeight) {
+            hasHitTop++;
+            if (hasHitTop > hasHitTopExtra) {
+                clearInterval(interval);
+                callback();
+            } else {
+                ScrollUtils.TOP(chatScroller);
+                prevScrollHeight = chatScroller.scrollHeight;
             }
+        } else {
+            ScrollUtils.TOP(chatScroller);
+            prevScrollHeight = chatScroller.scrollHeight;
+            hasHitTop = 0;
         }
-
-        // No match found in this batch; the palace controller needs
-        // to look further back to find the connection point.
-        return -1;
-    }
-
-    static END_CALLBACK = () => {
-    }
-
-    static DATA_CALLBACK = (fileName, dataModified, type) => { console.log(fileName, dataModified, type); }
+    }, intervalMs);
 }

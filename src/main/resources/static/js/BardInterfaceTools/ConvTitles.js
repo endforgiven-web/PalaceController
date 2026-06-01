@@ -6,7 +6,7 @@ class ConvTitles {
         const titles = {};
         array.forEach((item, index) => {
             let indexList = titles[item];
-            if (indexList == undefined) indexList = [];
+            if (indexList == undefined) { indexList = []; }
             titles[item.textContent.trim()] = indexList.push(index);
         });
 
@@ -22,7 +22,7 @@ class ConvTitles {
     }
 
     static GET_INDEX(title, prevCurrIndex = 0) {
-        titleIndexList = ConvTitles.GET_TITLES_TEXT()[title];
+        let titleIndexList = ConvTitles.GET_TITLES_TEXT()[title];
         return MathUtils.closest(titleIndexList, prevCurrIndex);
     }
 
@@ -60,7 +60,7 @@ class ConvTitles {
 
     static GET_LEFT_INF_SCROLL() {
         let ret = document.getElementsByTagName('infinite-scroller')[0];
-        if (ret == undefined) ret = document.getElementsByTagName('infinite-scroller')[0];
+        if (ret == undefined) { ret = document.getElementsByTagName('infinite-scroller')[0]; }
         return ret;
     }
 
@@ -76,7 +76,7 @@ class ConvTitles {
         const interval = setInterval(() => {
             convTitles = ConvTitles.GET_TITLES();
             if (convTitles.length <= desiredCheck) {
-                if (infScroller == undefined) infScroller = ConvTitles.GET_LEFT_INF_SCROLL();
+                if (infScroller == undefined) { infScroller = ConvTitles.GET_LEFT_INF_SCROLL(); }
                 ScrollUtils.BOTTOM(infScroller);
             } else {
                 clearInterval(interval);

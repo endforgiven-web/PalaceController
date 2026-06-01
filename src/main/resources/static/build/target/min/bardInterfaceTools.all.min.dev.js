@@ -31,8 +31,9 @@ class ConvTitles {
         const titles = {};
         array.forEach((item, index) => {
             let indexList = titles[item];
-            if (indexList == undefined)
+            if (indexList == undefined) {
                 indexList = [];
+            }
             titles[item.textContent.trim()] = indexList.push(index);
         });
         return titles;
@@ -44,7 +45,7 @@ class ConvTitles {
         return document.querySelector("gem-nav-list-item[data-test-id='conversation'] > a.mdc-list-item--activated .title-text");
     }
     static GET_INDEX(title, prevCurrIndex = 0) {
-        titleIndexList = ConvTitles.GET_TITLES_TEXT()[title];
+        let titleIndexList = ConvTitles.GET_TITLES_TEXT()[title];
         return MathUtils.closest(titleIndexList, prevCurrIndex);
     }
     static GET_CURR_INDEX(prevCurrIndex) {
@@ -75,8 +76,9 @@ class ConvTitles {
     }
     static GET_LEFT_INF_SCROLL() {
         let ret = document.getElementsByTagName('infinite-scroller')[0];
-        if (ret == undefined)
+        if (ret == undefined) {
             ret = document.getElementsByTagName('infinite-scroller')[0];
+        }
         return ret;
     }
     static REMOVE_SPECIAL_CHARS(title) {
@@ -90,8 +92,9 @@ class ConvTitles {
         const interval = setInterval(() => {
             convTitles = ConvTitles.GET_TITLES();
             if (convTitles.length <= desiredCheck) {
-                if (infScroller == undefined)
+                if (infScroller == undefined) {
                     infScroller = ConvTitles.GET_LEFT_INF_SCROLL();
+                }
                 ScrollUtils.BOTTOM(infScroller);
             }
             else {
@@ -111,6 +114,43 @@ class ConvTitles {
         startCheckingCycle();
     });
 })();
+function setUpTestButton() {
+    const btn = document.createElement("button");
+    btn.innerText = "test";
+    btn.addEventListener("click", scrapeAndUploadNewConversations);
+    document.body.appendChild(btn);
+}
+
+"use strict";
+/*class RetrieveUtils {
+    static CHECK_CONVS() {
+        RetrieveUtils.GET_MASTER_LIST((masterList) => {
+            RetrieveUtils.SUBMIT(masterList);
+        });
+    }
+
+    static GET_MASTER_LIST(onFinish = (data) => { }) {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: baseUrl + "masterFile",
+            onload: function (response) {
+                var data = JSON.parse(response.responseText);
+                onFinish(data.resp);
+            },
+            onerror: function (err) {
+                console.error("Palace Uplink Failed!", err);
+            }
+        });
+    }
+
+    static SUBMIT(masterList) {
+        console.log(masterList);
+    }
+}
+
+*/ 
+
+"use strict";
 function startCheckingCycle() {
     if (!hasCycleRun) {
         hasCycleRun = true;
@@ -129,16 +169,11 @@ function startCheckingCycle() {
         }, CHECK_FREQUENCY);
     }
 }
-function setUpTestButton() {
-    const btn = document.createElement("button");
-    btn.innerText = "test";
-    btn.addEventListener("click", scrapeAndUploadNewConversations);
-    document.body.appendChild(btn);
-}
 function getDateCST() {
     const options = { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
     return new Date().toLocaleString('en-US', options).replaceAll("/", "_").replaceAll(":", "_");
 }
+// upload
 function uploadConvs(files, onFinish = (response) => { }) {
     console.log(files);
     if (!files.length) {
@@ -161,9 +196,9 @@ function uploadConvs(files, onFinish = (response) => { }) {
         }
     });
 }
-/** SCRAPER **/
+/** Scrape **/
 async function scrapeAndUploadNewConversations() {
-    Scraper.GET_MASTER_LIST((masterList) => {
+    ScrapeUtils.GET_MASTER_LIST((masterList) => {
         ConvTitles.GET_RECENT((titles) => {
             let startMLSlice = masterList.length - titles.length;
             startMLSlice = startMLSlice <= 0 ? 0 : startMLSlice;
@@ -175,11 +210,11 @@ async function scrapeAndUploadNewConversations() {
                     .replace(/\.txt$/, '')
                     .trim();
             }).reverse();
-            const scrapeStartPoint = Scraper.FIND_START(cleanedMasterList, titles);
+            const scrapeStartPoint = ScrapeUtils.FIND_START(cleanedMasterList, titles);
             ConvTitles.GOTO_X_CONV(scrapeStartPoint - 1);
             const files = [];
             let currIndex = scrapeStartPoint - 1;
-            Scraper.END_CALLBACK = () => {
+            ScrapeUtils.END_CALLBACK = () => {
                 setTimeout(() => {
                     if (currIndex <= 0) {
                         uploadConvs(files);
@@ -191,7 +226,7 @@ async function scrapeAndUploadNewConversations() {
                     }
                 }, 1000);
             };
-            Scraper.DATA_CALLBACK = (name, data, type) => {
+            ScrapeUtils.DATA_CALLBACK = (name, data, type) => {
                 const blob = new Blob([data], { type: "text/plain" });
                 // 3️⃣ Convert Blob to a File object (gives it a name & metadata)
                 const file = new File([blob], name + "." + type, {
@@ -204,7 +239,7 @@ async function scrapeAndUploadNewConversations() {
         });
     });
 }
-function scrollToTopAutoScrape() { scrollToTopAuto(Scraper.SCRAPE); }
+function scrollToTopAutoScrape() { scrollToTopAuto(ScrapeUtils.SCRAPE); }
 function scrollToTopAuto(callback = () => { }) {
     const chatScroller = ChatScroller.GET();
     ScrollUtils.TOP(chatScroller);
@@ -233,21 +268,21 @@ function scrollToTopAuto(callback = () => { }) {
 }
 
 "use strict";
-class Scraper {
+class ScrapeUtils {
     static SCRAPE() {
         const chatInfScroll = ChatScroller.GET();
         const convTitle = ConvTitles.GET_CURR_TITLE();
         if (chatInfScroll !== undefined && convTitle !== undefined) {
-            const data = chatInfScroll.textContent;
+            const data = `` + chatInfScroll.textContent;
             const fileName = ConvTitles.REMOVE_SPECIAL_CHARS(convTitle.textContent) + " " + getDateCST();
             const type = "txt";
             const dataModified = data.replaceAll(/ You Said  /gi, "\n\n").replaceAll(/ Gemini Said /gi, "\n\n").replaceAll(/You Stopped this Response/gi, "");
-            Scraper.DATA_CALLBACK(fileName, dataModified, type);
+            ScrapeUtils.DATA_CALLBACK(fileName, dataModified, type);
         }
         else {
             console.log(chatInfScroll, convTitle);
         }
-        Scraper.END_CALLBACK();
+        ScrapeUtils.END_CALLBACK();
     }
     static GET_MASTER_LIST(onFinish = (data) => { }) {
         GM_xmlhttpRequest({

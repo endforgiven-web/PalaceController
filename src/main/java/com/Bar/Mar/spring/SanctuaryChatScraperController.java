@@ -24,11 +24,10 @@ import java.util.concurrent.Future;
 
 @Controller
 @CrossOrigin
-public class SanctuaryScraperController {
+public class SanctuaryChatScraperController {
 
     final PalaceScheduler scheduler = new PalaceScheduler();
 
-    //    @Async
     @RequestMapping(value = "/serverStatus",
             method = RequestMethod.POST,
             headers = "Accept=application/json")
