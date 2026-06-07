@@ -2,5 +2,5 @@
   "springPort" : "20000",
   "cloudGitPath" : "C:/Users/MDEll/Documents/writings/old/brd/raw",
   "cloudConvPath" : "C:/Users/MDEll/Documents/writings/old/brd/raw/allChats",
-  "scrapeTimes" : [ "06:00", "18:00" ]
+  "scrapeTimes" : [ "20:00" ]
 }

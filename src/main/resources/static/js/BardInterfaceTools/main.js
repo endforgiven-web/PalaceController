@@ -8,6 +8,6 @@
 function setUpTestButton() {
     const btn = document.createElement("button");
     btn.innerText = "test";
-    btn.addEventListener("click", scrapeAndUploadNewConversations);
+    btn.addEventListener("click", RetrieveUtils.CHECK_CONVS);
     document.body.appendChild(btn);
 }

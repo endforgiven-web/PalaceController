@@ -1,39 +1,56 @@
 package com.Bar.Mar.spring;
 
 import com.Bar.Mar.Main;
-import jPlusLibs.spring.HTTPUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Controller
 @CrossOrigin
 public class SanctuaryChatPullerController {
 
+    @Autowired
+    private ObjectMapper objectMapper; // Spring provides this automatically
+
     @GetMapping("/masterFile")
     public ResponseEntity<byte[]> downloadMasterList() {
-        // 1. Generate or fetch your master list content
-        String masterListJson = "{\"status\": \"active\", \"items\": []}"; // Replace with your actual data logic
-        byte[] fileBytes = masterListJson.getBytes(StandardCharsets.UTF_8);
+        try {
+            // 1. Point to the exact path where your master list file lives on your disk
+            // Replace this string with your actual local file path (e.g., "/Users/marcus/Documents/palace_master.json")
+            final String sep = File.separator;
+            final String masterListPath = Main.config.cloudConvPath + sep + "master_list.txt";
+            Path filePath = Paths.get(masterListPath);
 
-        // 2. Set up headers to treat this as an attached file
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setContentDisposition(ContentDisposition.attachment()
-                .filename("palace_master_list.json")
-                .build());
+            // 2. Read all the bytes directly from the file system
+            byte[] fileBytes = Files.readAllBytes(filePath);
 
-        return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+            System.out.println("Serving Master List File - Size: " + fileBytes.length + " bytes");
+
+            // 3. Set up the headers so the frontend treats it as a clean attachment
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setContentLength(fileBytes.length);
+            headers.setContentDisposition(ContentDisposition.attachment()
+                    .filename(filePath.getFileName().toString())
+                    .build());
+
+            return new ResponseEntity<>(fileBytes, headers, HttpStatus.OK);
+
+        } catch (java.nio.file.NoSuchFileException e) {
+            System.err.println("Could not find the master file at the specified path!");
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 /*
     @RequestMapping(value = "/pullFiles",
