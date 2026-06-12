@@ -1,8 +1,14 @@
 class RetrieveUtils {
     static CHECK_CONVS() {
         RetrieveUtils.GET_MASTER_LIST((masterList) => {
-            RetrieveUtils.SUBMIT
-                (masterList);
+            const mockFile = new File(["This is a test file for the array handler!"], "master_list2.txt", {
+                type: "text/plain",
+            });
+
+            console.log("🧪 Array Test: Packing master_list.txt and master_list2.txt together...");
+
+            // Pass BOTH files into the updated batch SUBMIT function
+            RetrieveUtils.SUBMIT([masterListFile, mockFile]);
         });
     }
 
@@ -50,22 +56,28 @@ class RetrieveUtils {
         });
     }
 
-    static SUBMIT(masterListFile) {
-        console.group("🚀 SUBMIT23: Dual-Path Angular Drop Injection");
-        console.log("File:", masterListFile.name, "| Size:", masterListFile.size, "bytes | Type:", masterListFile.type);
+    static SUBMIT(files) {
+        // Ensure we are always dealing with an array, even if a single file slips through
+        if (!Array.isArray(files)) {
+            files = [files];
+        }
+
+        console.log(`🚀 SUBMIT: Processing a batch of ${files.length} file(s).`);
 
         // ── 0. Locate the drop zone ──────────────────────────────────────────────
         const dropZone = ConvUtils.getFileDropZone();
         if (!dropZone) {
             console.error("CRITICAL: Drop zone not found in DOM. Aborting.");
-            console.groupEnd();
             return;
         }
-        console.log("Drop zone located:", dropZone);
 
-        // ── 1. Build the DataTransfer bundle ────────────────────────────────────
+        // ── 1. Build the DataTransfer bundle for ALL files ──────────────────────
         const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(masterListFile);
+
+        // Loop through the array and append every file to the dataTransfer payload
+        files.forEach(file => {
+            dataTransfer.items.add(file);
+        });
 
         // Lock the types array so Angular's drag-validator sees ["Files"]
         try {
@@ -78,12 +90,15 @@ class RetrieveUtils {
             console.warn("types override skipped:", e);
         }
 
-        // Mock FileList so dataTransfer.files also passes Angular's guards
+        // Mock FileList collection to pass Angular's structural guards for multiple files
         try {
             const mockFileList = Object.create(FileList.prototype);
-            Object.defineProperty(mockFileList, '0', { value: masterListFile, enumerable: true });
-            Object.defineProperty(mockFileList, 'length', { value: 1 });
-            mockFileList.item = (i) => i === 0 ? masterListFile : null;
+            files.forEach((file, index) => {
+                Object.defineProperty(mockFileList, index.toString(), { value: file, enumerable: true });
+            });
+            Object.defineProperty(mockFileList, 'length', { value: files.length });
+            mockFileList.item = (i) => mockFileList[i] || null;
+
             Object.defineProperty(dataTransfer, 'files', {
                 value: mockFileList,
                 writable: false,
@@ -93,69 +108,52 @@ class RetrieveUtils {
             console.warn("files override skipped:", e);
         }
 
-        // ── 2. webkitGetAsEntry prototype patch (survives Angular's async digest) ─
-        //
-        //  WHY prototype-level instead of instance-level:
-        //  Angular's XAP uploader calls webkitGetAsEntry() inside a Zone.js
-        //  microtask that runs AFTER the drop event handler returns. By the time
-        //  that microtask fires, any Object.defineProperty patch on the *instance*
-        //  (dataTransfer.items[0]) may have been reset by the browser's garbage
-        //  collector clearing the DataTransferItemList. Patching the prototype
-        //  means the mock survives for the full tick.
+        // ── 2. webkitGetAsEntry prototype patch ──────────────────────────────────
+        // Since we are patching the item prototype globally, it will intercept 
+        // calls sequentially as Angular iterates through the indices.
         const originalGetAsEntry = DataTransferItem.prototype.webkitGetAsEntry;
 
-        const mockFileEntry = {
-            isFile: true,
-            isDirectory: false,
-            name: masterListFile.name,
-            fullPath: '/' + masterListFile.name,
-            file(successCb, _errorCb) { successCb(masterListFile); },
-            // Some Angular uploaders also call createReader on directories — stub it safely
-            createReader() { return { readEntries(cb) { cb([]); } }; }
-        };
-
         DataTransferItem.prototype.webkitGetAsEntry = function () {
-            console.log("webkitGetAsEntry() intercepted on prototype — returning mock entry.");
-            return mockFileEntry;
+            // Find which item instance this is being called on to match the correct file
+            const itemsArray = Array.from(dataTransfer.items);
+            const itemIndex = itemsArray.indexOf(this);
+            const associatedFile = files[itemIndex] || files[0];
+
+            return {
+                isFile: true,
+                isDirectory: false,
+                name: associatedFile.name,
+                fullPath: '/' + associatedFile.name,
+                file(successCb, _errorCb) { successCb(associatedFile); },
+                createReader() { return { readEntries(cb) { cb([]); } }; }
+            };
         };
 
         const restorePrototype = () => {
             DataTransferItem.prototype.webkitGetAsEntry = originalGetAsEntry;
-            console.log("webkitGetAsEntry prototype restored.");
         };
 
-        // ── 3. PATH B — MutationObserver file-input intercept (armed early) ──────
-        //
-        //  Some versions of Gemini's uploader respond to the drop by spawning a
-        //  hidden <input type="file"> and expecting it to be populated. We watch
-        //  for it in parallel so we win either way.
+        // ── 3. PATH B — MutationObserver file-input intercept (Armed for array) ─
         let pathBFired = false;
 
         const injectIntoFileInput = (input) => {
-            if (pathBFired) return; // only fire once
+            if (pathBFired) return;
             pathBFired = true;
-            console.log("PATH B: Hidden file input intercepted:", input);
-
-            const dt = new DataTransfer();
-            dt.items.add(masterListFile);
 
             try {
-                input.files = dt.files;
+                input.files = dataTransfer.files;
             } catch (e) {
                 console.warn("PATH B: Could not assign .files directly:", e);
             }
 
-            // Dispatch in the order Angular expects: focus → input → change
             input.dispatchEvent(new Event('focus', { bubbles: true, composed: true }));
             input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
             input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
 
-            // Also fire a native InputEvent so Angular's (input) binding triggers
             try {
                 input.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true }));
-            } catch (e) { /* InputEvent not available in all environments */ }
+            } catch (e) { }
 
-            console.log("PATH B: Payload injected into file input. ✅");
             mutationObserver.disconnect();
         };
 
@@ -182,39 +180,26 @@ class RetrieveUtils {
         };
 
         // ── 5. PATH A — Drag sequence ─────────────────────────────────────────────
-        //
-        //  CRITICAL: We must add a real dragover listener that calls preventDefault()
-        //  before we dispatch our fake dragover. Without preventDefault() on dragover,
-        //  browsers silently discard the subsequent "drop" event — this is the #1
-        //  reason SUBMIT9–15 showed the blue UI flash open and then immediately close
-        //  with no file card appearing.
-
         const dragoverGuard = (e) => {
             e.preventDefault();
             e.stopPropagation();
         };
         dropZone.addEventListener('dragover', dragoverGuard);
 
-        console.log("PATH A Phase 1: dragenter + dragover → opening blue gate...");
         dropZone.dispatchEvent(makeDragEvent('dragenter'));
         dropZone.dispatchEvent(makeDragEvent('dragover'));
 
-        // Phase 2: drop — fire after Angular's Zone.js processes the visual state change
         setTimeout(() => {
-            console.log("PATH A Phase 2: drop → injecting file payload...");
             const activeTarget = document.querySelector('.xap-uploader-dropzone') || dropZone;
             activeTarget.dispatchEvent(makeDragEvent('drop'));
         }, 150);
 
-        // Phase 3: dragleave + cleanup
         setTimeout(() => {
-            console.log("PATH A Phase 3: dragleave + cleanup.");
             dropZone.dispatchEvent(makeDragEvent('dragleave'));
             dropZone.removeEventListener('dragover', dragoverGuard);
             restorePrototype();
             mutationObserver.disconnect();
-            console.groupEnd();
-            console.log("SUBMIT23 sequence complete — check the prompt area for the file card! 🎉");
+            console.log(`🎉 Batch upload sequence complete for ${files.length} file(s)!`);
         }, 500);
     }
 }
