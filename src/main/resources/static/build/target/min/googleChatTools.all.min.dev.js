@@ -19,8 +19,11 @@ let hasCycleRun = false;
 
 "use strict";
 class GCUtils {
-    static SCRAPE(x) {
+    static SCRAPE_X(x) {
         GCUtils.goToXChat(x);
+        GCUtils.SCRAPE_CURR_CONV();
+    }
+    static SCRAPE_CURR_CONV() {
         setTimeout(() => {
             const convName = GCUtils.GET_CURR_CONV_NAME();
             const convMessages = GCUtils.GET_CURR_CONV_MESSAGES_TEXT();
@@ -62,11 +65,12 @@ class GCUtils {
     console.log('gctools');
     // Your code here...
     setTimeout(() => {
-        GCUtils.SCRAPE(3);
+        uploadConversation();
     }, 1500);
 })();
-function test() {
-    console.log("test");
+function uploadConversation() {
+    console.log("uploadConversation");
+    const arr = GCUtils.SCRAPE_X(3);
 }
 
 "use strict";

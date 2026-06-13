@@ -8,6 +8,6 @@
 function setUpTestButton() {
     const btn = document.createElement("button");
     btn.innerText = "test";
-    btn.addEventListener("click", RetrieveUtils.CHECK_CONVS);
+    btn.addEventListener("click", RetrieveUtils.CHECK_MASTER);
     document.body.appendChild(btn);
 }
