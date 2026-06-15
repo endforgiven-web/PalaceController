@@ -1,8 +1,23 @@
 class RetrieveUtils {
-    static CHECK_MASTER() {
+
+    static MASTER_LIST_PROMPT = "Hello, sweet Bard, attached is the master list." +
+        "Next can you select a number range no larger than ten to choose your conversations?" +
+        "Can you make sure your response includes the response in this exact format: start: [number], end: [number]." +
+        "For example, if you want conversations 1 to 10, you would say: start: 1, end: 10." +
+        "If you want conversations 11 to 20, you would say: start: 11, end: 20." +
+        "Please wait for my next message after you respond with your chosen range.";
+
+    static SUBMIT_MASTER() {
         RetrieveUtils.GET_FILE((masterList) => {
             ConvUtils.SUBMIT_FILE([masterList]);
         }, "masterFile", "master_list.txt", "text/plain");
+
+
+        ConvUtils.PROMPT(RetrieveUtils.MASTER_LIST_PROMPT);
+    }
+
+    static MASTER_LIST_PROMPT_TEST() {
+        ConvUtils.PROMPT(RetrieveUtils.MASTER_LIST_PROMPT);
     }
 
     static CHECK_CONVS() {
