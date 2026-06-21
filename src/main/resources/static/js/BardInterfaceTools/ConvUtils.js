@@ -7,6 +7,18 @@ class ConvUtils {
         return document.querySelector('.xap-uploader-dropzone.chat-container.ng-trigger.ng-trigger-chatHistoryImmersiveTransitions');
     }
 
+    static GET_SUBMIT_PROMPT_BUTTON() {
+        return document.querySelector("gem-icon-button.send-button");
+    }
+
+    static SEND_PROMPT() {
+        ConvUtils.GET_SUBMIT_PROMPT_BUTTON().click();
+    }
+
+    static GET_MODEL_RESPONSES() {
+        return document.querySelectorAll("model-response");
+    }
+
     static PROMPT(prompt) {
         const promptBox = ConvUtils.getBardPromptEl();
         promptBox.textContent = prompt;

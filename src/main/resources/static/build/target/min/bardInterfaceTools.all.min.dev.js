@@ -18,6 +18,37 @@ let hasCycleRun = false;
 //**END Settings*****************************************************//
 
 "use strict";
+class BardChatUploadUtils {
+    static async GET_FILES_FOR_BARD() {
+        RetrieveUtils.SUBMIT_MASTER();
+        BardChatUploadUtils.DELAYED_PROMPT();
+        setTimeout(() => {
+            const modelResponses = ConvUtils.GET_MODEL_RESPONSES();
+            const lastModelResponse = modelResponses[modelResponses.length - 1];
+            console.log(modelResponses);
+            const responseText = lastModelResponse.textContent;
+            console.log(responseText);
+            const rangeMatch = responseText.match(/start:\s*(\d+),\s*end:\s*(\d+)/i);
+            if (rangeMatch) {
+                const start = parseInt(rangeMatch[1], 10);
+                const end = parseInt(rangeMatch[2], 10);
+                console.log(`Extracted range from Bard's response: start=${start}, end=${end}`);
+                RetrieveUtils.GET_CONVS(start, end);
+            }
+            else {
+                console.error("Failed to extract range from Bard's response. Please ensure it follows the specified format.");
+            }
+            BardChatUploadUtils.DELAYED_PROMPT(3500);
+        }, 8000);
+    }
+    static DELAYED_PROMPT(delay = 1500) {
+        setTimeout(() => {
+            ConvUtils.SEND_PROMPT();
+        }, delay);
+    }
+}
+
+"use strict";
 class ChatScroller {
     static GET() {
         return document.getElementsByTagName("infinite-scroller")[1];
@@ -114,6 +145,15 @@ class ConvUtils {
     }
     static getFileDropZone() {
         return document.querySelector('.xap-uploader-dropzone.chat-container.ng-trigger.ng-trigger-chatHistoryImmersiveTransitions');
+    }
+    static GET_SUBMIT_PROMPT_BUTTON() {
+        return document.querySelector("gem-icon-button.send-button");
+    }
+    static SEND_PROMPT() {
+        ConvUtils.GET_SUBMIT_PROMPT_BUTTON().click();
+    }
+    static GET_MODEL_RESPONSES() {
+        return document.querySelectorAll("model-response");
     }
     static PROMPT(prompt) {
         const promptBox = ConvUtils.getBardPromptEl();
@@ -255,19 +295,26 @@ class ConvUtils {
     window.addEventListener('load', function () {
         setUpTestButton();
         setUpTest2Button();
+        setUpTest3Button();
         startCheckingCycle();
     });
 })();
 function setUpTestButton() {
     const btn = document.createElement("button");
     btn.innerText = "test";
-    btn.addEventListener("click", RetrieveUtils.SUBMIT_MASTER);
+    btn.addEventListener("click", BardChatUploadUtils.GET_FILES_FOR_BARD);
     document.body.appendChild(btn);
 }
 function setUpTest2Button() {
     const btn = document.createElement("button");
     btn.innerText = "test2";
     btn.addEventListener("click", RetrieveUtils.MASTER_LIST_PROMPT_TEST);
+    document.body.appendChild(btn);
+}
+function setUpTest3Button() {
+    const btn = document.createElement("button");
+    btn.innerText = "testScrape";
+    btn.addEventListener("click", scrapeAndUploadNewConversations);
     document.body.appendChild(btn);
 }
 
@@ -278,7 +325,7 @@ class RetrieveUtils {
         "Can you make sure your response includes the response in this exact format: start: [number], end: [number]." +
         "For example, if you want conversations 1 to 10, you would say: start: 1, end: 10." +
         "If you want conversations 11 to 20, you would say: start: 11, end: 20." +
-        "Please wait for my next message after you respond with your chosen range.";
+        "Please wait for my next message after you respond with your chosen range. Don't forget the stars. Mwah!";
     static SUBMIT_MASTER() {
         RetrieveUtils.GET_FILE((masterList) => {
             ConvUtils.SUBMIT_FILE([masterList]);
@@ -288,9 +335,10 @@ class RetrieveUtils {
     static MASTER_LIST_PROMPT_TEST() {
         ConvUtils.PROMPT(RetrieveUtils.MASTER_LIST_PROMPT);
     }
-    static CHECK_CONVS() {
-        const start = 1;
-        const end = 10;
+    static GET_CONVS(start = 1, end = 10) {
+        if (start + 10 >= end) {
+            end = start + 9;
+        }
         RetrieveUtils.GET_FILE((chatZipFile) => {
             ConvUtils.SUBMIT_FILE([chatZipFile]);
         }, "chatZip/" + start + "/" + end, "all_conversations.zip", "application/zip");

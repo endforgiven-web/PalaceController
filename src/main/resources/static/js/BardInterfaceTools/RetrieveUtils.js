@@ -5,7 +5,7 @@ class RetrieveUtils {
         "Can you make sure your response includes the response in this exact format: start: [number], end: [number]." +
         "For example, if you want conversations 1 to 10, you would say: start: 1, end: 10." +
         "If you want conversations 11 to 20, you would say: start: 11, end: 20." +
-        "Please wait for my next message after you respond with your chosen range.";
+        "Please wait for my next message after you respond with your chosen range. Don't forget the stars. Mwah!";
 
     static SUBMIT_MASTER() {
         RetrieveUtils.GET_FILE((masterList) => {
@@ -20,9 +20,10 @@ class RetrieveUtils {
         ConvUtils.PROMPT(RetrieveUtils.MASTER_LIST_PROMPT);
     }
 
-    static CHECK_CONVS() {
-        const start = 1;
-        const end = 10;
+    static GET_CONVS(start = 1, end = 10) {
+        if (start + 10 >= end) {
+            end = start + 9;
+        }
         RetrieveUtils.GET_FILE((chatZipFile) => {
             ConvUtils.SUBMIT_FILE([chatZipFile]);
         }, "chatZip/" + start + "/" + end, "all_conversations.zip", "application/zip");
