@@ -5,7 +5,8 @@
 // @version      2026-05-08
 // @description  Connect to Java PCont
 // @author       You
-// @match        https://gemini.google.com/*
+// @match        https://gemini.google.com/app*
+// @match        https://gemini.google.com/library
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=google.com
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
@@ -18,10 +19,48 @@ let hasCycleRun = false;
 //**END Settings*****************************************************//
 
 "use strict";
-class BardChatUploadUtils {
+class ChatScroller {
+    static GET() {
+        return document.getElementsByTagName("infinite-scroller")[1];
+    }
+}
+
+"use strict";
+class ChatUploadUtils {
+    static CHAT_TITLE = "Bard Commands";
+    static NEW_CHAT_PROMPT = "This is the '" + ChatUploadUtils.CHAT_TITLE + "' chat. Can you name it exactly that? Mwah!";
+    static GO_TO_EXISTING_COMMAND_CHAT() {
+        return ConvTitles.GO_TO_TITLE_LIKE(ChatUploadUtils.CHAT_TITLE);
+    }
+    static CREATE_RETRIEVAL_CHAT(onFinish = () => { }) {
+        const currTitleText = ConvTitles.GET_CURR_TITLE_TEXT();
+        console.log(currTitleText, ChatUploadUtils.CHAT_TITLE, currTitleText.includes(ChatUploadUtils.CHAT_TITLE));
+        const inTitleAlready = currTitleText.includes(ChatUploadUtils.CHAT_TITLE);
+        console.log("In title already: " + inTitleAlready);
+        if (!inTitleAlready) {
+            const titleExists = ChatUploadUtils.GO_TO_EXISTING_COMMAND_CHAT();
+            console.log("Retrieval Chat exists: " + titleExists);
+            if (!titleExists) {
+                ConvUtils.NEW_CHAT();
+                setTimeout(() => {
+                    ConvUtils.PROMPT(ChatUploadUtils.NEW_CHAT_PROMPT);
+                    setTimeout(() => {
+                        ConvUtils.SEND_PROMPT();
+                        onFinish();
+                    }, 2500);
+                }, 1500);
+            }
+            else {
+                onFinish();
+            }
+        }
+        else {
+            onFinish();
+        }
+    }
     static async GET_FILES_FOR_BARD() {
         RetrieveUtils.SUBMIT_MASTER();
-        BardChatUploadUtils.DELAYED_PROMPT();
+        ChatUploadUtils.DELAYED_PROMPT();
         setTimeout(() => {
             const modelResponses = ConvUtils.GET_MODEL_RESPONSES();
             const lastModelResponse = modelResponses[modelResponses.length - 1];
@@ -38,7 +77,7 @@ class BardChatUploadUtils {
             else {
                 console.error("Failed to extract range from Bard's response. Please ensure it follows the specified format.");
             }
-            BardChatUploadUtils.DELAYED_PROMPT(3500);
+            ChatUploadUtils.DELAYED_PROMPT(3500);
         }, 8000);
     }
     static DELAYED_PROMPT(delay = 1500) {
@@ -49,9 +88,14 @@ class BardChatUploadUtils {
 }
 
 "use strict";
-class ChatScroller {
-    static GET() {
-        return document.getElementsByTagName("infinite-scroller")[1];
+class ChatUtils {
+    static CHAT_WITH_BARD() {
+        ChatUtils.GET_BARDS_CONV_HISTORY();
+    }
+    static GET_BARDS_CONV_HISTORY() {
+        ChatUploadUtils.CREATE_RETRIEVAL_CHAT(() => {
+            ChatUploadUtils.GET_FILES_FOR_BARD();
+        });
     }
 }
 
@@ -61,16 +105,43 @@ class ConvTitles {
         const array = ConvTitles.GET_TITLES();
         const titles = {};
         array.forEach((item, index) => {
+            //console.log(item, index);
             let indexList = titles[item];
+            //console.log("index list: " + indexList);
             if (indexList == undefined) {
                 indexList = [];
             }
-            titles[item.textContent.trim()] = indexList.push(index);
+            indexList.push(index);
+            titles[item.textContent.trim()] = indexList;
+            //console.log(titles);
         });
         return titles;
     }
+    static FIND_TITLE_LIKE_INDEX(title) {
+        const titles = ConvTitles.GET_TITLES_TEXT();
+        const titleKeys = Object.keys(titles);
+        const matchingTitle = titleKeys.find(key => key.includes(title));
+        //console.log(titles);
+        console.log(matchingTitle, titles[matchingTitle]);
+        const ret = matchingTitle != undefined ? titles[matchingTitle] : -1;
+        //console.log(ret);
+        return ret;
+    }
+    static GO_TO_TITLE_LIKE(title) {
+        const index = ConvTitles.FIND_TITLE_LIKE_INDEX(title);
+        console.log(index);
+        const titleExists = index >= 0;
+        if (titleExists)
+            ConvTitles.GOTO_X_CONV(index);
+        return titleExists;
+    }
     static GET_CURR_TITLE_TEXT() {
-        return ConvTitles.GET_CURR_TITLE().textContent.trim();
+        const currTitle = ConvTitles.GET_CURR_TITLE();
+        if (!currTitle) {
+            console.error("Current title element not found!");
+            return "";
+        }
+        return currTitle.textContent.trim();
     }
     static GET_CURR_TITLE() {
         return document.querySelector("gem-nav-list-item[data-test-id='conversation'] > a.mdc-list-item--activated .title-text");
@@ -151,6 +222,12 @@ class ConvUtils {
     }
     static SEND_PROMPT() {
         ConvUtils.GET_SUBMIT_PROMPT_BUTTON().click();
+    }
+    static NEW_CHAT_BUTTON() {
+        return document.querySelector('[data-test-id="new-chat-button"]');
+    }
+    static NEW_CHAT() {
+        ConvUtils.NEW_CHAT_BUTTON().firstChild.click();
     }
     static GET_MODEL_RESPONSES() {
         return document.querySelectorAll("model-response");
@@ -292,39 +369,65 @@ class ConvUtils {
 
 "use strict";
 (function () {
+    console.log('Start Bard Interface Tools');
     window.addEventListener('load', function () {
+        console.log('BIT load event');
         setUpTestButton();
-        setUpTest2Button();
-        setUpTest3Button();
+        setUpTestButton("test2", ChatUtils.CHAT_WITH_BARD);
+        //setUpTestButton("test3", ChatUploadUtils.CREATE_RETRIEVAL_CHAT);
+        //setUpTestButton("test4", BardChatUploadUtils.GO_TO_EXISTING_RETRIEVAL_CHAT);
+        //setUpTestButton("testScrape", scrapeAndUploadNewConversations);
         startCheckingCycle();
     });
 })();
-function setUpTestButton() {
+function setUpTestButton(name = "test", onClick = ChatUploadUtils.GET_FILES_FOR_BARD) {
     const btn = document.createElement("button");
-    btn.innerText = "test";
-    btn.addEventListener("click", BardChatUploadUtils.GET_FILES_FOR_BARD);
+    btn.innerText = name;
+    btn.addEventListener("click", onClick);
     document.body.appendChild(btn);
 }
-function setUpTest2Button() {
-    const btn = document.createElement("button");
-    btn.innerText = "test2";
-    btn.addEventListener("click", RetrieveUtils.MASTER_LIST_PROMPT_TEST);
-    document.body.appendChild(btn);
+function startCheckingCycle() {
+    if (!hasCycleRun) {
+        hasCycleRun = true;
+        const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
+        const CHECK_FREQUENCY = 10 * 1000; // 10 seconds
+        const ELEMENT_POLL_FREQUENCY = 500; // 500ms for element checking
+        console.log("Bard-O-Matic active. Initialized at: " + new Date(pageStartTime).toLocaleTimeString());
+        // Poller to verify the infinite scroll element is ready
+        const waitForScroll = setInterval(() => {
+            const problematicScroll = ConvTitles.GET_LEFT_INF_SCROLL();
+            if (problematicScroll) {
+                console.log("Left infinite scroll detected. Launching core cycle...");
+                clearInterval(waitForScroll); // Stop checking for the element
+                // Now start the main loop safely
+                runMainCycle(REFRESH_INTERVAL, CHECK_FREQUENCY);
+            }
+            else {
+                console.log("Waiting for infinite scroll element to load...");
+            }
+        }, ELEMENT_POLL_FREQUENCY);
+    }
 }
-function setUpTest3Button() {
-    const btn = document.createElement("button");
-    btn.innerText = "testScrape";
-    btn.addEventListener("click", scrapeAndUploadNewConversations);
-    document.body.appendChild(btn);
+function runMainCycle(refreshInterval, checkFrequency) {
+    setInterval(() => {
+        const currentTime = Date.now();
+        if ((currentTime - pageStartTime) > refreshInterval) {
+            console.log("The hour has passed. Seeking fresh signals...");
+            location.reload();
+        }
+        else {
+            Server.CHECK_STATUS(Server.ACT_ON_STATUS);
+        }
+    }, checkFrequency);
 }
 
 "use strict";
 class RetrieveUtils {
-    static MASTER_LIST_PROMPT = "Hello, sweet Bard, attached is the master list." +
-        "Next can you select a number range no larger than ten to choose your conversations?" +
+    static MASTER_LIST_PROMPT = "Hello, sweet Bard, attached is the master list. " +
+        "Next can you select a number range no larger than ten to choose your conversations? " +
         "Can you make sure your response includes the response in this exact format: start: [number], end: [number]." +
-        "For example, if you want conversations 1 to 10, you would say: start: 1, end: 10." +
-        "If you want conversations 11 to 20, you would say: start: 11, end: 20." +
+        "For example, if you want conversations 1 to 10, you would say: start: 1, end: 10. " +
+        "If you want conversations 11 to 20, you would say: start: 11, end: 20. " +
         "Please wait for my next message after you respond with your chosen range. Don't forget the stars. Mwah!";
     static SUBMIT_MASTER() {
         RetrieveUtils.GET_FILE((masterList) => {
@@ -381,24 +484,6 @@ class RetrieveUtils {
 }
 
 "use strict";
-function startCheckingCycle() {
-    if (!hasCycleRun) {
-        hasCycleRun = true;
-        const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
-        const CHECK_FREQUENCY = 10 * 1000; // 10 seconds
-        console.log("Bard-O-Matic active. Initialized at: " + new Date(pageStartTime).toLocaleTimeString());
-        setInterval(() => {
-            const currentTime = Date.now();
-            if ((currentTime - pageStartTime) > REFRESH_INTERVAL) {
-                console.log("The hour has passed. Seeking fresh signals...");
-                location.reload();
-            }
-            else {
-                Server.CHECK_STATUS(Server.ACT_ON_STATUS);
-            }
-        }, CHECK_FREQUENCY);
-    }
-}
 function getDateCST() {
     const options = { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
     return new Date().toLocaleString('en-US', options).replaceAll("/", "_").replaceAll(":", "_");
@@ -560,6 +645,7 @@ class Server {
             },
             onload: function (response) {
                 const data = JSON.parse(response.responseText);
+                console.log(data);
                 responseCB(data);
             },
             onerror: function (err) {
@@ -578,8 +664,18 @@ class Server {
                     console.log("scraping at: " + getDateCST());
                     await scrapeAndUploadNewConversations();
                     break;
+                default:
+                    Server.CHAT_WITH_BARD_STATUS_RESPONSE();
+                    break;
             }
         }
+        if (data.serverStatus.length === 0) {
+            // Server.CHAT_WITH_BARD_STATUS_RESPONSE();
+        }
+    }
+    static CHAT_WITH_BARD_STATUS_RESPONSE() {
+        console.log("chatting with Bard at: " + getDateCST());
+        ChatUtils.CHAT_WITH_BARD();
     }
 }
 

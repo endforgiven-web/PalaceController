@@ -1,24 +1,3 @@
-function startCheckingCycle() {
-    if (!hasCycleRun) {
-        hasCycleRun = true;
-        const REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
-        const CHECK_FREQUENCY = 10 * 1000; // 10 seconds
-
-        console.log("Bard-O-Matic active. Initialized at: " + new Date(pageStartTime).toLocaleTimeString());
-
-        setInterval(() => {
-            const currentTime = Date.now();
-
-            if ((currentTime - pageStartTime) > REFRESH_INTERVAL) {
-                console.log("The hour has passed. Seeking fresh signals...");
-                location.reload();
-            } else {
-                Server.CHECK_STATUS(Server.ACT_ON_STATUS);
-            }
-        }, CHECK_FREQUENCY);
-    }
-}
-
 function getDateCST() {
     const options = { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
     return new Date().toLocaleString('en-US', options).replaceAll("/", "_").replaceAll(":", "_");

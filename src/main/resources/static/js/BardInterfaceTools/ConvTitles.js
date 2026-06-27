@@ -5,16 +5,44 @@ class ConvTitles {
         const array = ConvTitles.GET_TITLES();
         const titles = {};
         array.forEach((item, index) => {
+            //console.log(item, index);
             let indexList = titles[item];
+            //console.log("index list: " + indexList);
             if (indexList == undefined) { indexList = []; }
-            titles[item.textContent.trim()] = indexList.push(index);
+            indexList.push(index);
+            titles[item.textContent.trim()] = indexList;
+            //console.log(titles);
         });
 
         return titles;
     }
 
+    static FIND_TITLE_LIKE_INDEX(title) {
+        const titles = ConvTitles.GET_TITLES_TEXT();
+        const titleKeys = Object.keys(titles);
+        const matchingTitle = titleKeys.find(key => key.includes(title));
+        //console.log(titles);
+        console.log(matchingTitle, titles[matchingTitle]);
+        const ret = matchingTitle != undefined ? titles[matchingTitle] : -1;
+        //console.log(ret);
+        return ret;
+    }
+
+    static GO_TO_TITLE_LIKE(title) {
+        const index = ConvTitles.FIND_TITLE_LIKE_INDEX(title);
+        console.log(index);
+        const titleExists = index >= 0;
+        if (titleExists) ConvTitles.GOTO_X_CONV(index);
+        return titleExists;
+    }
+
     static GET_CURR_TITLE_TEXT() {
-        return ConvTitles.GET_CURR_TITLE().textContent.trim();
+        const currTitle = ConvTitles.GET_CURR_TITLE();
+        if (!currTitle) {
+            console.error("Current title element not found!");
+            return "";
+        }
+        return currTitle.textContent.trim();
     }
 
     static GET_CURR_TITLE() {

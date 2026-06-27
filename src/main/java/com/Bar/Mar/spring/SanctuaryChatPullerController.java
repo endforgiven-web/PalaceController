@@ -27,6 +27,7 @@ public class SanctuaryChatPullerController {
 
     @GetMapping("/masterFile")
     public ResponseEntity<byte[]> masterList() {
+        System.out.println("retrieving master list as file...");
         try {
             // 1. Point to the exact path where your master list file lives on your disk
             // Replace this string with your actual local file path (e.g., "/Users/marcus/Documents/palace_master.json")
@@ -34,6 +35,7 @@ public class SanctuaryChatPullerController {
             final String masterListPath = Main.config.cloudConvPath + sep + "master_list.txt";
             Path filePath = Paths.get(masterListPath);
 
+            System.out.println("reading all bytes...");
             // 2. Read all the bytes directly from the file system
             byte[] fileBytes = Files.readAllBytes(filePath);
 

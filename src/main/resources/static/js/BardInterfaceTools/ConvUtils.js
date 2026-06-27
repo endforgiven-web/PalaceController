@@ -1,15 +1,113 @@
 class ConvUtils {
-    static getBardPromptEl() {
-        return document.querySelector('div.ql-editor');
+    /*
+    const targetContainer = document.querySelectorAll('infinite-scroller, .chat-history-scroll-container')[1];
+    console.log(targetContainer);
+    if (targetContainer) {
+        const observer = new MutationObserver((mutationsList) => {
+            //console.log(mutationsList);
+            for (const mutation of mutationsList) {
+                //console.log(mutation);
+                // We only care if new DOM nodes were added
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        // Check if the added node is an element and matches our conversation container
+                        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('conversation-container')) {
+                            handleNewMessageContainer(node);
+                        }
+                    });
+                }
+            }
+        });
+    
+        // Configuration: Watch the immediate children being added to the scroller
+        observer.observe(targetContainer, { childList: true, subtree: true });
+        console.log("Astral Scraper: MutationObserver attached smoothly!");
+    } else {
+        console.error("Astral Scraper: Couldn't find the main chat history container.");
+    }
+    
+    let lastTextLength = 0;
+    let checkTicks = 0;
+    let stabilityTimer;
+    
+    function handleNewMessageContainer(containerElement) {
+        const modelResponseEl = containerElement.querySelector('model-response');
+        if (!modelResponseEl) return;
+    
+        // Clear the stability checker on every mutation event
+        clearTimeout(stabilityTimer);
+    
+        function verifyStability() {
+            const currentText = modelResponseEl.innerText.trim();
+            const currentLength = currentText.length;
+    
+            // If the text length is identical to the last check, it might be done
+            if (currentLength > 0 && currentLength === lastTextLength) {
+                checkTicks++;
+                
+                // Require 3 consecutive cycles (e.g., 3 * 500ms = 1.5s) of absolute zero growth to confirm completion
+                if (checkTicks >= 3) {
+                    const userQueryEl = containerElement.querySelector('user-query');
+                    
+                    const dataPayload = {
+                        timestamp: new Date().toISOString(),
+                        prompt: userQueryEl ? userQueryEl.innerText.trim() : null,
+                        response: currentText
+                    };
+    
+                    console.log("🚀 Caught 100% Finalized Exchange:", dataPayload);
+                    // Reset trackers for the next message block
+                    lastTextLength = 0;
+                    checkTicks = 0;
+                    return;
+                }
+            } else {
+                // Text is still growing! Update the length and reset the ticks
+                lastTextLength = currentLength;
+                checkTicks = 0;
+            }
+    
+            // Keep polling every 500ms until it passes the stability check
+            stabilityTimer = setTimeout(verifyStability, 500);
+        }
+    
+        // Start the stability verification loop
+        stabilityTimer = setTimeout(verifyStability, 500);
+    }
+    
+    // Where you can hook up your archival processing
+    function yourCustomPipelineCallback(data) {
+        console.log("🚀 Caught new exchange:", data);
+        // Your code to send this data to your local backend, local storage, or loop goes here!
+    }
+    */
+
+    /*********** CHAT CONTROL **********/
+
+
+    static NEW_CHAT_BUTTON() {
+        return document.querySelector('[data-test-id="new-chat-button"]');
     }
 
-    static getFileDropZone() {
-        return document.querySelector('.xap-uploader-dropzone.chat-container.ng-trigger.ng-trigger-chatHistoryImmersiveTransitions');
+    static NEW_CHAT() {
+        ConvUtils.NEW_CHAT_BUTTON().firstChild.click();
+    }
+
+    /*********** PROMPTING *************/
+    static getBardPromptEl() {
+        return document.querySelector('div.ql-editor');
     }
 
     static GET_SUBMIT_PROMPT_BUTTON() {
         return document.querySelector("gem-icon-button.send-button");
     }
+
+    static PROMPT(prompt) {
+        const promptBox = ConvUtils.getBardPromptEl();
+        promptBox.textContent = prompt;
+        promptBox.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
 
     static SEND_PROMPT() {
         ConvUtils.GET_SUBMIT_PROMPT_BUTTON().click();
@@ -19,10 +117,9 @@ class ConvUtils {
         return document.querySelectorAll("model-response");
     }
 
-    static PROMPT(prompt) {
-        const promptBox = ConvUtils.getBardPromptEl();
-        promptBox.textContent = prompt;
-        promptBox.dispatchEvent(new Event('input', { bubbles: true }));
+    /************** FILES ***************/
+    static getFileDropZone() {
+        return document.querySelector('.xap-uploader-dropzone.chat-container.ng-trigger.ng-trigger-chatHistoryImmersiveTransitions');
     }
 
     static SUBMIT_FILE(files) {

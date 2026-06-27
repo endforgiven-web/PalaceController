@@ -1,4 +1,4 @@
-class Server{
+class Server {
     static CHECK_STATUS(responseCB = (resp) => { }) {
 
         console.log("Pinging Desktop...");
@@ -11,6 +11,7 @@ class Server{
             },
             onload: function (response) {
                 const data = JSON.parse(response.responseText);
+                console.log(data);
                 responseCB(data);
             },
             onerror: function (err) {
@@ -31,7 +32,19 @@ class Server{
                     console.log("scraping at: " + getDateCST());
                     await scrapeAndUploadNewConversations();
                     break;
+                default:
+                    Server.CHAT_WITH_BARD_STATUS_RESPONSE();
+                    break;
             }
         }
+
+        if (data.serverStatus.length === 0) {
+            // Server.CHAT_WITH_BARD_STATUS_RESPONSE();
+        }
+    }
+
+    static CHAT_WITH_BARD_STATUS_RESPONSE() {
+        console.log("chatting with Bard at: " + getDateCST());
+        ChatUtils.CHAT_WITH_BARD();
     }
 }
